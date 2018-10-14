@@ -95,19 +95,52 @@ def finishAnswer():
   print('Finishing answer')
   return 'OK'
 
+@app.route('/send-olga-response', methods=['POST'])
+def sendOlgaResponse():
+  socketio.emit('olga_response', { 'data': request.form })
+  print('Sent olga message')
+  return 'OK'
+
+@app.route('/send-leonel-response', methods=['POST'])
+def sendLeonelResponse():
+  socketio.emit('leonel_response', { 'data': request.form })
+  print('Sent leonel message')
+  return 'OK'
+
 @app.route('/send-chan-response', methods=['POST'])
 def sendChanResponse():
-  print('Chan response', request.data)
-  print('Chan response', request.form)
   socketio.emit('chan_response', { 'data': request.form })
   print('Sent chan message')
   return 'OK'
 
 @app.route('/send-koch-response', methods=['POST'])
 def sendKochResponse():
-  print('Koch response', request.form)
   socketio.emit('koch_response', { 'data': request.form })
   print('Sent koch message')
+  return 'OK'
+
+@app.route('/send-rudy-response', methods=['POST'])
+def sendRudyResponse():
+  socketio.emit('rudy_response', { 'data': request.form })
+  print('Sent rudy message')
+  return 'OK'
+
+@app.route('/send-alvaro-response', methods=['POST'])
+def sendAlvaroResponse():
+  socketio.emit('alvaro_response', { 'data': request.form })
+  print('Sent alvaro message')
+  return 'OK'
+
+@app.route('/send-castro-response', methods=['POST'])
+def sendCastroResponse():
+  socketio.emit('castro_response', { 'data': request.form })
+  print('Sent castro message')
+  return 'OK'
+
+@app.route('/send-noriega-response', methods=['POST'])
+def sendNoriegaResponse():
+  socketio.emit('noriega_response', { 'data': request.form })
+  print('Sent noriega message')
   return 'OK'
 
 if __name__ == '__main__':
