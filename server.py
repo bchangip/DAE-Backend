@@ -19,7 +19,6 @@ class AudioRecorder(multiprocessing.Process):
     FORMAT = pyaudio.paInt16
     CHANNELS = 1
     RATE = 44100
-    RECORD_SECONDS = 5
     WAVE_OUTPUT_FILENAME = "output.wav"
 
     p = pyaudio.PyAudio()
@@ -67,11 +66,11 @@ def koch():
   time.sleep(3)
   requests.post('http://localhost:5000/send-koch-response', data={ "category": "false", "confidence": 82 })
 
-def chan():
+def chan(audioPath):
   print('Running Chan')
+  print('Analyzing audio located at', audioPath)
   time.sleep(5)
   requests.post('http://localhost:5000/send-chan-response', data={ "category": "true", "confidence": 79 })
-
 
 @app.route('/start-question')
 def startQuestion():
@@ -90,7 +89,7 @@ def startAnswer():
 def finishAnswer():
   global audioRecorder
   audioRecorder.shutdown()
-  pool.apply_async(chan)
+  pool.apply_async(chan, ("output.wav",))
   pool.apply_async(koch)
   socketio.emit('started_analyzing')
   print('Finishing answer')
