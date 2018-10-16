@@ -6,6 +6,10 @@ import multiprocessing
 import requests
 import pyaudio
 import wave
+import os
+from neupy import algorithms, environment
+from pymongo import MongoClient
+import numpy as np
 
 class AudioRecorder(multiprocessing.Process):
   def __init__(self, ):
@@ -59,6 +63,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 CORS(app)
 socketio = SocketIO(app)
+environment.reproducible()
 global audioRecorder
 
 def koch():
@@ -66,11 +71,61 @@ def koch():
   time.sleep(3)
   requests.post('http://localhost:5000/send-koch-response', data={ "category": "false", "confidence": 82 })
 
-def chan(audioPath):
-  print('Running Chan')
-  print('Analyzing audio located at', audioPath)
-  time.sleep(5)
-  requests.post('http://localhost:5000/send-chan-response', data={ "category": "true", "confidence": 79 })
+def chan(audioPath, cie, pebl, dsmt, hare):
+  os.system('del chanSoX.txt')
+  os.system('c:\\"Program Files (x86)"\sox-14-4-2\sox.exe ' + audioPath + ' −n stats >> chanSoX.txt 2>&1')
+  with open('chanSoX.txt') as soxOutput:
+    soxStats = soxOutput.readlines()
+  rmsLevel = float(soxStats[4].rstrip()[10:])
+  crest = float(soxStats[7].rstrip()[12:])
+  rmsTr = float(soxStats[6].rstrip()[9:])
+
+  db = MongoClient().voz.answers
+  answers = list(db.find())
+  rmsLevels = list(map(lambda answer: answer['rmsLevel'], answers))
+  crests = list(map(lambda answer: answer['crest'], answers))
+  rmsTrs = list(map(lambda answer: answer['rmsTr'], answers))
+  cies = list(map(lambda answer: answer['cie'], answers))
+  pebls = list(map(lambda answer: answer['pebl'], answers))
+  dsmts = list(map(lambda answer: answer['dsmt'], answers))
+  hares = list(map(lambda answer: answer['hare'], answers))
+
+  maxrmsLevels = max(list(map(abs, rmsLevels)))
+  maxcrests = max(list(map(abs, crests)))
+  maxrmsTrs = max(list(map(abs, rmsTrs)))
+  maxcies = max(list(map(abs, cies)))
+  maxpebls = max(list(map(abs, pebls)))
+  maxdsmts = max(list(map(abs, dsmts)))
+  maxhares = max(list(map(abs, hares)))
+
+  train_labels = np.array(list(map(lambda answer: answer['label'], answers)))
+  rmsLevels = list(map(lambda number: number / maxrmsLevels, rmsLevels))
+  crests = list(map(lambda number: number / maxcrests, crests))
+  rmsTrs = list(map(lambda number: number / maxrmsTrs, rmsTrs))
+  cies = list(map(lambda number: number / maxcies, cies))
+  pebls = list(map(lambda number: number / maxpebls, pebls))
+  dsmts = list(map(lambda number: number / maxdsmts, dsmts))
+  hares = list(map(lambda number: number / maxhares, hares))
+  train_answers = np.array([rmsLevels, crests, rmsTrs, cies, pebls, dsmts, hares])
+
+  pnn = algorithms.PNN(std=0.25, verbose=True)
+  pnn.train(train_answers.T, train_labels)
+  rmsLevel = rmsLevel / maxrmsLevels
+  crest = crest / maxcrests
+  rmsTr = rmsTr / maxrmsTrs
+  cie = cie / maxcies
+  pebl = pebl / maxpebls
+  dsmt = dsmt / maxdsmts
+  hare = hare / maxhares
+  test = np.array([[rmsLevel], [crest], [rmsTr], [cie], [pebl], [dsmt], [hare]])
+  falseProbability, trueProbability = pnn.predict_proba(test.T)[0]
+  if trueProbability > falseProbability:
+    category = "true"
+    confidence = trueProbability
+  else:
+    category = "false"
+    confidence = falseProbability
+  requests.post('http://localhost:5000/send-chan-response', data={ "category": category, "confidence": str(confidence*100) })
 
 @app.route('/start-question')
 def startQuestion():
@@ -89,7 +144,7 @@ def startAnswer():
 def finishAnswer():
   global audioRecorder
   audioRecorder.shutdown()
-  pool.apply_async(chan, ("output.wav",))
+  pool.apply_async(chan, ("output.wav",0.5,0.12,0.34,0.89))
   pool.apply_async(koch)
   socketio.emit('started_analyzing')
   print('Finishing answer')
