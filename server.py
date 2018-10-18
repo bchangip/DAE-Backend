@@ -14,6 +14,8 @@ import sox
 import pickle
 from olga import return_values
 from leonel import prediction
+import cv2
+import glob
 
 
 class AudioRecorder(multiprocessing.Process):
@@ -64,21 +66,67 @@ class AudioRecorder(multiprocessing.Process):
     print("Shutdown initiated")
     self.exit.set()
 
+
+class VideRecorder(multiprocessing.Process):
+    def __init__(self, ):
+        multiprocessing.Process.__init__(self)
+        self.exit = multiprocessing.Event()
+
+    def run(self):
+        print("On Video Recorder...")
+        lastIndex = 0
+        files = glob.glob('./*.avi')
+        if (len(files) > 0):
+          lastIndex = int(max(files, key=path.getctime).split("-")[1].split(".")[0])
+        lastIndex += 1
+        cap = cv2.VideoCapture(0)
+        frame_width = int(cap.get(3))
+        frame_height = int(cap.get(4))
+        out = cv2.VideoWriter('interview-%s.avi' % str(lastIndex), cv2.VideoWriter_fourcc(
+            'M', 'J', 'P', 'G'), 30, (frame_width, frame_height))
+        while(not self.exit.is_set()):
+            ret, frame = cap.read()
+
+            if ret == True:
+                out.write(frame)
+
+                cv2.imshow('frame', frame)
+
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+            else:
+                break
+        cap.release()
+        out.release()
+        cv2.destroyAllWindows()
+
+    def shutdown(self):
+        self.exit.set()
+
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 CORS(app)
 socketio = SocketIO(app)
 environment.reproducible()
 global audioRecorder
+global videoRecorder
 
 def koch():
   print('Running Koch')
   time.sleep(3)
   requests.post('http://localhost:5000/send-koch-response', data={ "category": "false", "confidence": 82 })
   
-def leonel():
+def leonel(gender, age, dsmt, hare, ciep, cief, ciec, ciem,cie):
   print('Running Leonel')
-  x = prediction()
+  age = float(age)
+  dsmt = float(dsmt)
+  hare = float(hare)
+  ciep = float(ciep)
+  cief = float(cief)
+  ciec = float(ciec)
+  ciem = float(cie)
+  x = prediction(gender, age, dsmt, hare, ciep, cief, ciec, ciem,cie)
   requests.post('http://localhost:5000/send-leonel-response', data={ "category": x[0], "confidence": x[1] })
 
 def chan(audioPath, cie, pebl, dsmt, hare):
@@ -152,14 +200,19 @@ def startQuestion():
 def startAnswer():
   print('Starting answer')
   global audioRecorder
+  global videoRecorder
   audioRecorder = AudioRecorder()
   audioRecorder.start()
+  videoRecorder = VideRecorder()
+  videoRecorder.start()
   return 'OK'
 
 @app.route('/finish-answer', methods=['POST'])
 def finishAnswer():
   global audioRecorder
   audioRecorder.shutdown()
+  global videoRecorder
+  videoRecorder.shutdown()
   requestJson = request.get_json()
   gender = requestJson['gender']
   age = requestJson['age']
@@ -174,7 +227,7 @@ def finishAnswer():
   pool.apply_async(chan, ("output.wav",cie,pebl,dsmt,hare))
   pool.apply_async(koch)
   pool.apply_async(olga)
-  pool.apply_async(leonel)
+  pool.apply_async(leonel(gender, age, dsmt, hare, ciep, cief, ciec, ciem,cie))
 
   socketio.emit('started_analyzing')
   print('Finishing answer')

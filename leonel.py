@@ -37,8 +37,12 @@ def frecuencia(archivo):
     return int(freq_in_hertz)
 
 
-def prediction():
+def prediction(gender, age, dsmt, hare, ciep, cief, ciec, ciem,cie):
     audio = "output.wav"
+    if gender == 'Masculino':
+        sex = 0
+    elif gender == 'Femenino':
+        sex = 1
     transform = sox.Transformer()
     stats = transform.stats(audio)
     rmsTr = stats['RMS Tr dB']
@@ -50,7 +54,7 @@ def prediction():
     freq = frecuencia(audio)
     model = load_model('model_Leonel.h5')
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    data = np.array([[	0,	23,	50,	10,	120,	108,	114,	90,	116,	100,rmsTr,  pkLevel,crest,rmsPk,rmsLevel,freq, round(float(length))]])
+    data = np.array([[sex, age, dsmt, hare, ciep, cief, ciec, ciem,cie,	100,rmsTr,  pkLevel,crest,rmsPk,rmsLevel,freq, round(float(length))]])
     classes = model.predict_classes(data)
     proba = model.predict(data)
     if classes == [[0]]:
