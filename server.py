@@ -212,6 +212,8 @@ def startAnswer():
 def finishAnswer():
   global audioRecorder
   audioRecorder.shutdown()
+  global videoRecorder
+  videoRecorder.shutdown()
   requestJson = request.get_json()
   gender = requestJson['gender']
   age = requestJson['age']
