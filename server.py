@@ -78,7 +78,6 @@ def koch():
   
 def leonel():
   print('Running Leonel')
-  time.sleep(3)
   x = prediction()
   requests.post('http://localhost:5000/send-leonel-response', data={ "category": x[0], "confidence": x[1] })
 
@@ -179,6 +178,50 @@ def finishAnswer():
 
   socketio.emit('started_analyzing')
   print('Finishing answer')
+  return 'OK'
+
+@app.route('/save-results', methods=['POST'])
+def saveResults():
+  requestJson = request.get_json()
+  id = str(requestJson['id'])
+  gender = str(requestJson['gender'])
+  age = str(requestJson['age'])
+  pebl = str(requestJson['pebl'])
+  dsmt = str(requestJson['dsmt'])
+  hare = str(requestJson['hare'])
+  ciep = str(requestJson['ciep'])
+  cief = str(requestJson['cief'])
+  ciec = str(requestJson['ciec'])
+  ciem = str(requestJson['ciem'])
+  cie = str(requestJson['cie'])
+  voiceModuleOlgaCategory = str(requestJson['voiceModuleOlgaCategory'])
+  voiceModuleOlgaConfidence = str(requestJson['voiceModuleOlgaConfidence'])
+  voiceModuleOlgaStatus = str(requestJson['voiceModuleOlgaStatus'])
+  voiceModuleLeonelCategory = str(requestJson['voiceModuleLeonelCategory'])
+  voiceModuleLeonelConfidence = str(requestJson['voiceModuleLeonelConfidence'])
+  voiceModuleLeonelStatus = str(requestJson['voiceModuleLeonelStatus'])
+  voiceModuleChanCategory = str(requestJson['voiceModuleChanCategory'])
+  voiceModuleChanConfidence = str(requestJson['voiceModuleChanConfidence'])
+  voiceModuleChanStatus = str(requestJson['voiceModuleChanStatus'])
+  eegModuleKochCategory = str(requestJson['eegModuleKochCategory'])
+  eegModuleKochConfidence = str(requestJson['eegModuleKochConfidence'])
+  eegModuleKochStatus = str(requestJson['eegModuleKochStatus'])
+  eegModuleRudyCategory = str(requestJson['eegModuleRudyCategory'])
+  eegModuleRudyConfidence = str(requestJson['eegModuleRudyConfidence'])
+  eegModuleRudyStatus = str(requestJson['eegModuleRudyStatus'])
+  eegModuleAlvaroCategory = str(requestJson['eegModuleAlvaroCategory'])
+  eegModuleAlvaroConfidence = str(requestJson['eegModuleAlvaroConfidence'])
+  eegModuleAlvaroStatus = str(requestJson['eegModuleAlvaroStatus'])
+  microModuleCastroCategory = str(requestJson['microModuleCastroCategory'])
+  microModuleCastroConfidence = str(requestJson['microModuleCastroConfidence'])
+  microModuleCastroStatus = str(requestJson['microModuleCastroStatus'])
+  microModuleNoriegaCategory = str(requestJson['microModuleNoriegaCategory'])
+  microModuleNoriegaConfidence = str(requestJson['microModuleNoriegaConfidence'])
+  microModuleNoriegaStatus = str(requestJson['microModuleNoriegaStatus'])
+  print('Results parsed')
+  with open('results.csv', 'a') as results:
+    result = id + ', ' + gender + ', ' + age + ', ' + pebl + ', ' + dsmt + ', ' + hare + ', ' + ciep + ', ' + cief + ', ' + ciec + ', ' + ciem + ', ' + cie + ', ' + voiceModuleOlgaCategory + ', ' + voiceModuleOlgaConfidence + ', ' + voiceModuleOlgaStatus + ', ' + voiceModuleLeonelCategory + ', ' + voiceModuleLeonelConfidence + ', ' + voiceModuleLeonelStatus + ', ' + voiceModuleChanCategory + ', ' + voiceModuleChanConfidence + ', ' + voiceModuleChanStatus + ', ' + eegModuleKochCategory + ', ' + eegModuleKochConfidence + ', ' + eegModuleKochStatus + ', ' + eegModuleRudyCategory + ', ' + eegModuleRudyConfidence + ', ' + eegModuleRudyStatus + ', ' + eegModuleAlvaroCategory + ', ' + eegModuleAlvaroConfidence + ', ' + eegModuleAlvaroStatus + ', ' + microModuleCastroCategory + ', ' + microModuleCastroConfidence + ', ' + microModuleCastroStatus + ', ' + microModuleNoriegaCategory + ', ' + microModuleNoriegaConfidence + ', ' + microModuleNoriegaStatus + '\n'
+    results.write(result)
   return 'OK'
 
 @app.route('/send-olga-response', methods=['POST'])
