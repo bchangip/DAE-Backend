@@ -72,6 +72,7 @@ def koch():
   requests.post('http://localhost:5000/send-koch-response', data={ "category": "false", "confidence": 82 })
 
 def chan(audioPath, cie, pebl, dsmt, hare):
+  print('Running Chan')
   os.system('del chanSoX.txt')
   os.system('c:\\"Program Files (x86)"\sox-14-4-2\sox.exe ' + audioPath + ' −n stats >> chanSoX.txt 2>&1')
   with open('chanSoX.txt') as soxOutput:
@@ -108,15 +109,15 @@ def chan(audioPath, cie, pebl, dsmt, hare):
   hares = list(map(lambda number: number / maxhares, hares))
   train_answers = np.array([rmsLevels, crests, rmsTrs, cies, pebls, dsmts, hares])
 
-  pnn = algorithms.PNN(std=0.25, verbose=True)
+  pnn = algorithms.PNN(std=0.25)
   pnn.train(train_answers.T, train_labels)
   rmsLevel = rmsLevel / maxrmsLevels
   crest = crest / maxcrests
   rmsTr = rmsTr / maxrmsTrs
-  cie = cie / maxcies
-  pebl = pebl / maxpebls
-  dsmt = dsmt / maxdsmts
-  hare = hare / maxhares
+  cie = float(cie) / maxcies
+  pebl = float(pebl) / maxpebls
+  dsmt = float(dsmt) / maxdsmts
+  hare = float(hare) / maxhares
   test = np.array([[rmsLevel], [crest], [rmsTr], [cie], [pebl], [dsmt], [hare]])
   falseProbability, trueProbability = pnn.predict_proba(test.T)[0]
   if trueProbability > falseProbability:
@@ -127,12 +128,12 @@ def chan(audioPath, cie, pebl, dsmt, hare):
     confidence = falseProbability
   requests.post('http://localhost:5000/send-chan-response', data={ "category": category, "confidence": str(confidence*100) })
 
-@app.route('/start-question')
+@app.route('/start-question', methods=['POST'])
 def startQuestion():
   print('Starting question')
   return 'OK'
 
-@app.route('/start-answer')
+@app.route('/start-answer', methods=['POST'])
 def startAnswer():
   print('Starting answer')
   global audioRecorder
@@ -140,11 +141,22 @@ def startAnswer():
   audioRecorder.start()
   return 'OK'
 
-@app.route('/finish-answer')
+@app.route('/finish-answer', methods=['POST'])
 def finishAnswer():
   global audioRecorder
   audioRecorder.shutdown()
-  pool.apply_async(chan, ("output.wav",0.5,0.12,0.34,0.89))
+  requestJson = request.get_json()
+  gender = requestJson['gender']
+  age = requestJson['age']
+  pebl = requestJson['pebl']
+  dsmt = requestJson['dsmt']
+  hare = requestJson['hare']
+  ciep = requestJson['ciep']
+  cief = requestJson['cief']
+  ciec = requestJson['ciec']
+  ciem = requestJson['ciem']
+  cie = requestJson['cie']
+  pool.apply_async(chan, ("output.wav",cie,pebl,dsmt,hare))
   pool.apply_async(koch)
   socketio.emit('started_analyzing')
   print('Finishing answer')
@@ -199,5 +211,5 @@ def sendNoriegaResponse():
   return 'OK'
 
 if __name__ == '__main__':
-  pool = multiprocessing.Pool(processes=20)
+  pool = multiprocessing.Pool(processes=10)
   socketio.run(app)
