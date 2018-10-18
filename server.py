@@ -14,6 +14,8 @@ import sox
 import pickle
 from olga import return_values
 from leonel import prediction
+import cv2
+import glob
 
 
 class AudioRecorder(multiprocessing.Process):
@@ -64,12 +66,51 @@ class AudioRecorder(multiprocessing.Process):
     print("Shutdown initiated")
     self.exit.set()
 
+
+class VideRecorder(multiprocessing.Process):
+    def __init__(self, ):
+        multiprocessing.Process.__init__(self)
+        self.exit = multiprocessing.Event()
+
+    def run(self):
+        print("On Video Recorder...")
+        lastIndex = 0
+        files = glob.glob('./*.avi')
+        if (len(files) > 0):
+          lastIndex = int(max(files, key=path.getctime).split("-")[1].split(".")[0])
+        lastIndex += 1
+        cap = cv2.VideoCapture(0)
+        frame_width = int(cap.get(3))
+        frame_height = int(cap.get(4))
+        out = cv2.VideoWriter('interview-%s.avi' % str(lastIndex), cv2.VideoWriter_fourcc(
+            'M', 'J', 'P', 'G'), 30, (frame_width, frame_height))
+        while(not self.exit.is_set()):
+            ret, frame = cap.read()
+
+            if ret == True:
+                out.write(frame)
+
+                cv2.imshow('frame', frame)
+
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+            else:
+                break
+        cap.release()
+        out.release()
+        cv2.destroyAllWindows()
+
+    def shutdown(self):
+        self.exit.set()
+
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 CORS(app)
 socketio = SocketIO(app)
 environment.reproducible()
 global audioRecorder
+global videoRecorder
 
 def koch():
   print('Running Koch')
@@ -160,8 +201,11 @@ def startQuestion():
 def startAnswer():
   print('Starting answer')
   global audioRecorder
+  global videoRecorder
   audioRecorder = AudioRecorder()
   audioRecorder.start()
+  videoRecorder = VideRecorder()
+  videoRecorder.start()
   return 'OK'
 
 @app.route('/finish-answer', methods=['POST'])
