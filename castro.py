@@ -51,7 +51,7 @@ def getLandmarks(facial_landmarks):
 
 def analyzeFrames(fileName):
     model_clone = joblib.load('castro_model.pkl')
-    stream = cv2.VideoCapture(str("./test.mp4"))
+    stream = cv2.VideoCapture(str(fileName))
     FPS = stream.get(cv2.CAP_PROP_FPS)
     index = 0
     predictions = []
@@ -83,7 +83,7 @@ def expression():
     if (len(files) > 0):
         lastIndex = int(
             max(files, key=path.getctime).split("-")[1].split(".")[0])
-    if (path.exists('./xxx-%s.avi' % (str(lastIndex)))):
+    if (path.exists('./interview-%s.avi' % (str(lastIndex)))):
         result = analyzeFrames('./interview-%s.avi' % (str(lastIndex)))
         countTrue = 0
         countLie = 0
