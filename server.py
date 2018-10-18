@@ -191,6 +191,14 @@ def olga():
   classif, fin_conf = return_values('output.wav')  
   requests.post('http://localhost:5000/send-olga-response', data={ "category": classif, "confidence": fin_conf })
 
+def alvaro():
+  print("Running Al")
+  import data_manager_alvaro as dma
+  import tensor_nonlinear_gaussian_rbf_SVM as tnlg
+  dma.generateEntryFile("files_Al/test.csv") # aqui el path al archivo del emotiv
+  pred, cert = tnlg.module("files_Al/input.csv")
+  requests.post('http://localhost:5000/send-alvaro-response', data={ "category": pred, "confidence": cert })
+
 @app.route('/start-question', methods=['POST'])
 def startQuestion():
   print('Starting question')
@@ -227,6 +235,7 @@ def finishAnswer():
   pool.apply_async(chan, ("output.wav",cie,pebl,dsmt,hare))
   pool.apply_async(koch)
   pool.apply_async(olga)
+  pool.apply_async(alvaro)
   pool.apply_async(leonel, (gender, age, dsmt, hare, ciep, cief, ciec, ciem,cie))
 
   socketio.emit('started_analyzing')
