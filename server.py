@@ -76,10 +76,17 @@ def koch():
   time.sleep(3)
   requests.post('http://localhost:5000/send-koch-response', data={ "category": "false", "confidence": 82 })
   
-def leonel():
+def leonel(gender, age, dsmt, hare, ciep, cief, ciec, ciem,cie):
   print('Running Leonel')
   time.sleep(3)
-  x = prediction()
+  age = float(age)
+  dsmt = float(dsmt)
+  hare = float(hare)
+  ciep = float(ciep)
+  cief = float(cief)
+  ciec = float(ciec)
+  ciem = float(cie)
+  x = prediction(gender, age, dsmt, hare, ciep, cief, ciec, ciem,cie)
   requests.post('http://localhost:5000/send-leonel-response', data={ "category": x[0], "confidence": x[1] })
 
 def chan(audioPath, cie, pebl, dsmt, hare):
@@ -175,7 +182,7 @@ def finishAnswer():
   pool.apply_async(chan, ("output.wav",cie,pebl,dsmt,hare))
   pool.apply_async(koch)
   pool.apply_async(olga)
-  pool.apply_async(leonel)
+  pool.apply_async(leonel(gender, age, dsmt, hare, ciep, cief, ciec, ciem,cie))
 
   socketio.emit('started_analyzing')
   print('Finishing answer')
