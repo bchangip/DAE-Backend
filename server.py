@@ -13,6 +13,8 @@ import numpy as np
 import sox
 import pickle
 from olga import return_values
+from leonel import prediction
+
 
 class AudioRecorder(multiprocessing.Process):
   def __init__(self, ):
@@ -72,7 +74,13 @@ global audioRecorder
 def koch():
   print('Running Koch')
   time.sleep(3)
-  requests.post('http://localhost:5000/send-koch-response', data={ "category": "true", "confidence": 82 })
+  requests.post('http://localhost:5000/send-koch-response', data={ "category": "false", "confidence": 82 })
+  
+def leonel():
+  print('Running Leonel')
+  time.sleep(3)
+  x = prediction()
+  requests.post('http://localhost:5000/send-leonel-response', data={ "category": x[0], "confidence": x[1] })
 
 def chan(audioPath, cie, pebl, dsmt, hare):
   print('Running Chan')
@@ -167,6 +175,8 @@ def finishAnswer():
   pool.apply_async(chan, ("output.wav",cie,pebl,dsmt,hare))
   pool.apply_async(koch)
   pool.apply_async(olga)
+  pool.apply_async(leonel)
+
   socketio.emit('started_analyzing')
   print('Finishing answer')
   return 'OK'
