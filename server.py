@@ -77,7 +77,7 @@ class VideRecorder(multiprocessing.Process):
         lastIndex = 0
         files = glob.glob('./*.avi')
         if (len(files) > 0):
-          lastIndex = int(max(files, key=path.getctime).split("-")[1].split(".")[0])
+          lastIndex = int(max(files, key=os.path.getctime).split("-")[1].split(".")[0])
         lastIndex += 1
         cap = cv2.VideoCapture(0)
         frame_width = int(cap.get(3))
