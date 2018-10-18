@@ -227,7 +227,7 @@ def finishAnswer():
   pool.apply_async(chan, ("output.wav",cie,pebl,dsmt,hare))
   pool.apply_async(koch)
   pool.apply_async(olga)
-  pool.apply_async(leonel(gender, age, dsmt, hare, ciep, cief, ciec, ciem,cie))
+  pool.apply_async(leonel, (gender, age, dsmt, hare, ciep, cief, ciec, ciem,cie))
 
   socketio.emit('started_analyzing')
   print('Finishing answer')
