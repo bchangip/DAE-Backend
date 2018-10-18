@@ -10,6 +10,9 @@ import os
 from neupy import algorithms, environment
 from pymongo import MongoClient
 import numpy as np
+import sox
+import pickle
+from olga import return_values
 
 class AudioRecorder(multiprocessing.Process):
   def __init__(self, ):
@@ -69,7 +72,7 @@ global audioRecorder
 def koch():
   print('Running Koch')
   time.sleep(3)
-  requests.post('http://localhost:5000/send-koch-response', data={ "category": "false", "confidence": 82 })
+  requests.post('http://localhost:5000/send-koch-response', data={ "category": "true", "confidence": 82 })
 
 def chan(audioPath, cie, pebl, dsmt, hare):
   print('Running Chan')
@@ -128,6 +131,11 @@ def chan(audioPath, cie, pebl, dsmt, hare):
     confidence = falseProbability
   requests.post('http://localhost:5000/send-chan-response', data={ "category": category, "confidence": str(confidence*100) })
 
+def olga():
+  print('Running Olga')
+  classif, fin_conf = return_values('output.wav')  
+  requests.post('http://localhost:5000/send-olga-response', data={ "category": classif, "confidence": fin_conf })
+
 @app.route('/start-question', methods=['POST'])
 def startQuestion():
   print('Starting question')
@@ -158,6 +166,7 @@ def finishAnswer():
   cie = requestJson['cie']
   pool.apply_async(chan, ("output.wav",cie,pebl,dsmt,hare))
   pool.apply_async(koch)
+  pool.apply_async(olga)
   socketio.emit('started_analyzing')
   print('Finishing answer')
   return 'OK'
