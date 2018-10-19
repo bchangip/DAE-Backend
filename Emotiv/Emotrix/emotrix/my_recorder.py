@@ -52,6 +52,9 @@ class EmotrixRecoder(object):
             while True:
                 t = int(time.time()-t0)
                 #t = int(time.time())
+                if t == 4:
+                  headset.close()
+                  break
                 if temp_t != t:
                     cont_seconds += 1
 
@@ -109,4 +112,4 @@ er.start(['NOPE','RELAX', 'RELAX', 'RELAX', 'RELAX',
           'HAPPY', 'NEUTRAL', 'SAD', 'NEUTRAL',
           'HAPPY', 'NEUTRAL', 'SAD', 'NEUTRAL',
           'HAPPY', 'NEUTRAL', 'SAD', 'NEUTRAL',
-          ], 2, 'testt.csv')
+          ], 2, 'person.csv')
