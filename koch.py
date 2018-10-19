@@ -194,8 +194,11 @@ def insert_BD (
           cur.execute('INSERT INTO `megaproyecto`.`pregunta` (`id`, `id_persona`,`numero`,`veracidad`) VALUES (%s, %s,%s,%s);', (q_count, int(person_count), local_q_count, str(verdad)))
           con.commit()
       local_q_count += 1
-      second = int(second)
+      second = int(second) - 2
+      print('Second:', second)
+      print('LEN',len(af3))
       if second <= 140 and len(af3)>second:
+          print('INSIDE IF ')
           cur.execute('INSERT INTO `megaproyecto`.`medicion` (`id`, `id_sensor`, `id_pregunta`, `segundo`, `medicion`) VALUES (%s, %s, %s, %s, %s);', (meassure_count, 1, q_count, second, af3[second]))
           con.commit()
           meassure_count += 1
@@ -208,6 +211,7 @@ def insert_BD (
           cur.execute('INSERT INTO `megaproyecto`.`medicion` (`id`, `id_sensor`, `id_pregunta`, `segundo`, `medicion`) VALUES (%s, %s, %s, %s, %s);', (meassure_count, 4, q_count, second, f4[second]))
           con.commit()
           meassure_count += 1
+      print('OUT OF IF ')
       q_count += 1
 
 
@@ -294,11 +298,14 @@ def get_knn():
   x_train2 = np.loadtxt('./train/x_train.txt')
   y_train2 = np.loadtxt('./train/y_train.txt')
   one_value = x
+  print(one_value)
+  print(x_train2[0])
   clf.fit(x_train2, y_train2)
   prediction = clf.predict(one_value)
   print('Accuracy of KNN: ',prediction)
   prediction = prediction[0]
-  return prediction
+  probability = clf.predict_proba(one_value)[0]
+  return prediction, probability
 
 class EmotivRecorder():
   def __init__(self, ):
@@ -317,13 +324,17 @@ def koch(second,sexo, edad, pebl, dsmt, hare, ciep, cief, ciec, ciem, ciex, cies
   print('Running Koch')
   insert_BD(second,sexo, edad, pebl,  dsmt, hare, ciep, cief, ciec, ciem, ciex, cies, cie)
   generate_file()
-  value = get_knn()
+  value, confidence = get_knn()
   if value:
     category = 'true'
+    confidence = confidence[1] * 100
   else:
     category = 'false'
+    confidence = confidence[0] * 100
   time.sleep(3)
-  requests.post('http://localhost:5000/send-koch-response', data={ "category": category, "confidence": 0 })
+  print('category: ', category)
+  print('confidence: ', confidence)
+  requests.post('http://localhost:5000/send-koch-response', data={ "category": category, "confidence": confidence })
 
 def startAnswer():
   print('Starting answer')
@@ -344,7 +355,3 @@ def startQuestion():
   my_emotiv = EmotivRecorder()
   my_emotiv.run()
   return 'OK'
-
-startQuestion()
-startAnswer()
-finishAnswer()
