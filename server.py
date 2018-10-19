@@ -14,6 +14,7 @@ import sox
 import pickle
 from olga import return_values
 from leonel import prediction
+from castro import expression
 import cv2
 import glob
 
@@ -199,6 +200,11 @@ def alvaro():
   pred, cert = tnlg.module("files_Al/input.csv")
   requests.post('http://localhost:5000/send-alvaro-response', data={ "category": pred, "confidence": cert })
 
+def castro():
+      print("Running Castro")
+      classif, conf = expression()
+      requests.post('http://localhost:5000/send-castro-response', data={ "category": classif, "confidence": conf })
+
 @app.route('/start-question', methods=['POST'])
 def startQuestion():
   print('Starting question')
@@ -237,6 +243,7 @@ def finishAnswer():
   pool.apply_async(olga)
   pool.apply_async(alvaro)
   pool.apply_async(leonel, (gender, age, dsmt, hare, ciep, cief, ciec, ciem,cie))
+  pool.apply_async(castro)
 
   socketio.emit('started_analyzing')
   print('Finishing answer')
