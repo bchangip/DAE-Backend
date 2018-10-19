@@ -202,17 +202,17 @@ def alvaro():
 @app.route('/start-question', methods=['POST'])
 def startQuestion():
   print('Starting question')
+  global videoRecorder
+  videoRecorder = VideRecorder()
+  videoRecorder.start()
   return 'OK'
 
 @app.route('/start-answer', methods=['POST'])
 def startAnswer():
   print('Starting answer')
   global audioRecorder
-  global videoRecorder
   audioRecorder = AudioRecorder()
   audioRecorder.start()
-  videoRecorder = VideRecorder()
-  videoRecorder.start()
   return 'OK'
 
 @app.route('/finish-answer', methods=['POST'])
@@ -335,5 +335,5 @@ def sendNoriegaResponse():
   return 'OK'
 
 if __name__ == '__main__':
-  pool = multiprocessing.Pool(processes=10)
+  pool = multiprocessing.Pool(processes=2)
   socketio.run(app)
