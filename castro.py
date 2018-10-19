@@ -94,9 +94,9 @@ def expression():
                 countTrue += 1
         if (countLie > countTrue):
             response = "false"
-            trust = (countLie / (countLie + countTrue)) * 0.63
+            trust = ((countLie / (countLie + countTrue)) * 0.63) * 100
         else:
             response = "true"
-            trust = (countTrue / (countLie + countTrue)) * 0.63
+            trust = ((countTrue / (countLie + countTrue))) * 0.63 * 100
         return response, trust
-    return "false", 0.63
+    return "false", 63
