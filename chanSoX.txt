@@ -1,15 +1,1 @@
-DC offset   0.000000
-Min level  -0.000031
-Max level   0.000031
-Pk lev dB     -90.31
-RMS lev dB    -96.70
-RMS Pk dB     -96.49
-RMS Tr dB     -96.89
-Crest factor    2.09
-Flat factor     2.00
-Pk count       39.5k
-Bit-depth       1/16
-Num samples     172k
-Length s       3.901
-Scale max   1.000000
-Window s       0.050
+c:\Program Files (x86)\sox-14-4-2\sox.exe WARN stats: no audio

@@ -208,7 +208,7 @@ def insert_BD (
           cur.execute('INSERT INTO `megaproyecto`.`pregunta` (`id`, `id_persona`,`numero`,`veracidad`) VALUES (%s, %s,%s,%s);', (q_count, int(person_count), local_q_count, str(verdad)))
           con.commit()
       local_q_count += 1
-      second = len(af3) -1
+      second = int(second)
       print('Second:', second)
       print('LEN',len(af3))
       if second <= 140 and len(af3)>second:
@@ -436,7 +436,7 @@ def koch(second,sexo, edad, cie, dsmt, hare, ciep, cief, ciec, ciem, ciex=None, 
   if cies is None:
     cies = 0
   print('Running Koch')
-  insert_BD(second,sexo, edad, pebl, dsmt, hare, ciep, cief, ciec, ciem, ciex, cies, cie)
+  insert_BD(second, sexo, edad, pebl, dsmt, hare, ciep, cief, ciec, ciem, ciex, cies, cie)
   generate_file()
   value, confidence = get_knn()
   if value:
@@ -561,6 +561,7 @@ def startAnswer():
 @app.route('/finish-answer', methods=['POST'])
 def finishAnswer():
   global audioRecorder
+  global my_emotiv
   audioRecorder.shutdown()
   global videoRecorder
   global t0
@@ -577,11 +578,15 @@ def finishAnswer():
   ciem = requestJson['ciem']
   cie = requestJson['cie']
   pool.apply_async(chan, ("output.wav",cie,pebl,dsmt,hare))
-  pool.apply_async(koch, (t0, gender, age, cie, dsmt, hare, ciep, cief, ciec, ciem))
   pool.apply_async(olga)
   pool.apply_async(alvaro)
   pool.apply_async(leonel, (gender, age, dsmt, hare, ciep, cief, ciec, ciem,cie))
   pool.apply_async(castro)
+  while my_emotiv.is_alive() :
+    print('Alive')
+    pass
+  print('Exit emotiv')
+  pool.apply_async(koch, (t0, gender, age, cie, dsmt, hare, ciep, cief, ciec, ciem))
 
   socketio.emit('started_analyzing')
   print('Finishing answer')
