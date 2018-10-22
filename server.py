@@ -15,6 +15,7 @@ import pickle
 from olga import return_values
 from leonel import prediction
 from castro import expression
+from eyes import final_prediction
 import cv2
 import glob
 import xlrd
@@ -559,6 +560,12 @@ def castro():
       classif, conf = expression()
       requests.post('http://localhost:5000/send-castro-response', data={ "category": classif, "confidence": conf })
 
+def noriega():
+  print("Running Eye-Analisis")
+  resp, conf = final_prediction()
+  requests.post('http://localhost:5000/send-noriega-response', data={ "category": resp, "confidence": conf })
+
+
 @app.route('/start-question', methods=['POST'])
 def startQuestion():
   print('Starting question')
@@ -606,6 +613,7 @@ def finishAnswer():
   pool.apply_async(alvaro)
   pool.apply_async(leonel, (gender, age, dsmt, hare, ciep, cief, ciec, ciem,cie))
   pool.apply_async(castro)
+  pool.apply_async(noriega)
   while my_emotiv.is_alive() :
     print('Alive')
     pass
