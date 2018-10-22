@@ -22,9 +22,9 @@ import csv
 import sys
 import mysql.connector
 import pandas as pd
-
+import json
 import sklearn
-
+import emotiv_dnn as dnn
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing, neighbors, svm
 
@@ -271,7 +271,8 @@ def getTableQuestionVera(veracidad, preguntaNum):
 
   #demographics_values = str.format('{},{},{},{},{},{},{},{},{},{}',)
   output = ''
-
+  json_output = {"preguntas" : []}
+  json_object = {}
   print(sexo)
   print(demographics)
   print()
@@ -285,16 +286,30 @@ def getTableQuestionVera(veracidad, preguntaNum):
           str_dem = str(demographics[p][medicion])+ ','+ str_dem 
       if veracidad == 'True':
         output = output+ persona[medicion]+','+str(sensores[0][medicion])+','+str(sensores[1][medicion])+','+str(sensores[2][medicion])+','+str(sensores[3][medicion])+','+str(sexo[medicion])+","+str(preguntaNum)+',1,'+'2,'+str_dem+'\n'
+        json_object ['AF3'] = sensores[0][medicion]
+        json_object ['F3']=sensores[1][medicion]
+        json_object ['AF4']=sensores[2][medicion]
+        json_object ['F4']=sensores[3][medicion]
+        json_object ['sexo']=int(sexo[medicion])
+        json_object ['cief']=int(demographics[5][medicion])
+        json_object ['hare']=int(demographics[7][medicion])
+        json_object ['pebl']=int(demographics[9][medicion])
+        json_object ['edad']=int(demographics[10][medicion])
       else:
         output = output+ persona[medicion]+','+str(sensores[0][medicion])+','+str(sensores[1][medicion])+','+str(sensores[2][medicion])+','+str(sensores[3][medicion])+','+str(sexo[medicion])+","+str(preguntaNum)+',0,'+'2,'+str_dem+'\n'
     except:
       print ('Oops')
-  print (output)
-  return output
+  json_output["preguntas"].append(json_object)
+  print (json_output)
+  return output, json_output
 
 def generate_file():
+  csv_output, json_output = getTableQuestionVera('True',1)
   full_output = 'persona,AF3,F3,AF4,F4,sexo,numPregunta,veracidad,escolaridad,cie,cies,ciex,ciem,ciec,cief,ciep,hare,dsmt,pebl,edad\n'
-  full_output = full_output + str(getTableQuestionVera('True',1))
+  full_output = full_output + str(csv_output)
+  
+  with open('pregunta.json', 'w') as outfile:  
+    json.dump(json_output, outfile)
 
   with open('./result.csv', 'w') as file:
     print('writing')
@@ -445,7 +460,16 @@ def koch(second,sexo, edad, cie, dsmt, hare, ciep, cief, ciec, ciem, ciex=None, 
   else:
     category = 'false'
     confidence = confidence[0] * 100
+  valor, confianza = dnn.main([])
+  categoria = ''
+  if valor =='Lie':
+    categoria = 'false'
+  else:
+    categoria = 'true'
   time.sleep(3)
+  print ('confidence: ',categoria )
+  print ('confianza : ',confianza)
+  requests.post('http://localhost:5000/send-rudy-response', data={ "category": categoria, "confidence": confianza })
   requests.post('http://localhost:5000/send-koch-response', data={ "category": category, "confidence": confidence })
   
 def leonel(gender, age, dsmt, hare, ciep, cief, ciec, ciem,cie):

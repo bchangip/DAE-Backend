@@ -1,1 +1,15 @@
-c:\Program Files (x86)\sox-14-4-2\sox.exe WARN stats: no audio
+DC offset  -0.000000
+Min level  -0.300812
+Max level   0.358948
+Pk lev dB      -8.90
+RMS lev dB    -24.25
+RMS Pk dB     -18.45
+RMS Tr dB     -96.89
+Crest factor    5.85
+Flat factor     0.00
+Pk count           2
+Bit-depth      15/16
+Num samples     122k
+Length s       2.763
+Scale max   1.000000
+Window s       0.050

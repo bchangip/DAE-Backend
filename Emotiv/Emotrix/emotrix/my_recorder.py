@@ -52,7 +52,7 @@ class EmotrixRecoder(object):
             while True:
                 t = int(time.time()-t0)
                 #t = int(time.time())
-                if t > 45:
+                if t > 10:
                   headset.close()
                   break
                 if temp_t != t:

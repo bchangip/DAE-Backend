@@ -8,6 +8,8 @@ import sys
 import mysql.connector
 import pandas as pd
 import numpy as np
+import json
+import emotiv_dnn as dnn
 
 import sklearn
 
@@ -194,7 +196,7 @@ def insert_BD (
           cur.execute('INSERT INTO `megaproyecto`.`pregunta` (`id`, `id_persona`,`numero`,`veracidad`) VALUES (%s, %s,%s,%s);', (q_count, int(person_count), local_q_count, str(verdad)))
           con.commit()
       local_q_count += 1
-      second = int(second) - 2
+      second = 4
       print('Second:', second)
       print('LEN',len(af3))
       if second <= 140 and len(af3)>second:
@@ -257,7 +259,8 @@ def getTableQuestionVera(veracidad, preguntaNum):
 
   #demographics_values = str.format('{},{},{},{},{},{},{},{},{},{}',)
   output = ''
-
+  json_output = {"preguntas" : []}
+  json_object = {}
   print(sexo)
   print(demographics)
   print()
@@ -271,16 +274,30 @@ def getTableQuestionVera(veracidad, preguntaNum):
           str_dem = str(demographics[p][medicion])+ ','+ str_dem 
       if veracidad == 'True':
         output = output+ persona[medicion]+','+str(sensores[0][medicion])+','+str(sensores[1][medicion])+','+str(sensores[2][medicion])+','+str(sensores[3][medicion])+','+str(sexo[medicion])+","+str(preguntaNum)+',1,'+'2,'+str_dem+'\n'
+        json_object ['AF3'] = sensores[0][medicion]
+        json_object ['F3']=sensores[1][medicion]
+        json_object ['AF4']=sensores[2][medicion]
+        json_object ['F4']=sensores[3][medicion]
+        json_object ['sexo']=int(sexo[medicion])
+        json_object ['cief']=int(demographics[5][medicion])
+        json_object ['hare']=int(demographics[7][medicion])
+        json_object ['pebl']=int(demographics[9][medicion])
+        json_object ['edad']=int(demographics[10][medicion])
       else:
         output = output+ persona[medicion]+','+str(sensores[0][medicion])+','+str(sensores[1][medicion])+','+str(sensores[2][medicion])+','+str(sensores[3][medicion])+','+str(sexo[medicion])+","+str(preguntaNum)+',0,'+'2,'+str_dem+'\n'
     except:
       print ('Oops')
-  print (output)
-  return output
+  json_output["preguntas"].append(json_object)
+  print (json_output)
+  return output, json_output
 
 def generate_file():
+  csv_output, json_output = getTableQuestionVera('True',1)
   full_output = 'persona,AF3,F3,AF4,F4,sexo,numPregunta,veracidad,escolaridad,cie,cies,ciex,ciem,ciec,cief,ciep,hare,dsmt,pebl,edad\n'
-  full_output = full_output + str(getTableQuestionVera('True',1))
+  full_output = full_output + str(csv_output)
+  
+  with open('pregunta.json', 'w') as outfile:  
+    json.dump(json_output, outfile)
 
   with open('./result.csv', 'w') as file:
     print('writing')
@@ -332,6 +349,7 @@ def koch(second,sexo, edad, pebl, dsmt, hare, ciep, cief, ciec, ciem, ciex, cies
     category = 'false'
     confidence = confidence[0] * 100
   time.sleep(3)
+  dnn.main([])
   print('category: ', category)
   print('confidence: ', confidence)
   requests.post('http://localhost:5000/send-koch-response', data={ "category": category, "confidence": confidence })
@@ -355,3 +373,5 @@ def startQuestion():
   my_emotiv = EmotivRecorder()
   my_emotiv.run()
   return 'OK'
+
+koch(2,'Masculino', 23, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
